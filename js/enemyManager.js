@@ -61,7 +61,7 @@ $(document).ready(function(){
                 listaIniziative.push(el.value);
             }
         })
-        listaIniziative.sort(function(a, b){return a - b});
+        listaIniziative.sort(function(a, b){return b - a});
         listaIniziative = removeDuplicates(listaIniziative);
         listaIniziative.forEach(el => {
             listaCards.forEach(card => {
