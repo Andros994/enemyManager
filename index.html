@@ -108,7 +108,8 @@ $(document).ready(function(){
         });
     })
 
-    $('#closeModal').on('click', function(){
+    $(document).on('click', '#closeModal', function(){
+        $('#modalAdd').hide();
         $('#inputName').val("");
         $('#pf').val("");
         alignment = "";
