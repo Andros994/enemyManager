@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <title>DnD Enemy Manager</title>
+</head>
+<body>
+
+    <div id="headBar" style="display: flex;justify-content: space-evenly;">
+        <button id="addEnemy" class="btnAdd btn btn-danger m-3" type="button">
+            <i class="fa-solid fa-plus"></i>
+            <p>Aggiungi Nemico</p>
+        </button>
+        <button id="addAlly" class="btnAdd btn btn-success m-3" type="button">
+            <i class="fa-solid fa-plus"></i>
+            <p>Aggiungi Alleato</p>
+        </button>
+        <button id="addNPC" class="btnAdd btn btn-primary m-3" type="button">
+            <i class="fa-solid fa-plus"></i>
+            <p>Aggiungi NPC</p>
+        </button>
+    </div>
+
+    <hr>
+
+    <div class="row col-sm-12" id="cardsContainer" style="justify-content: center;">
+
+    </div>
+
+    <div id="modalAdd" class="modal" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Aggiungi Personaggio</h5>
+              <button type="button" id="closeModal" class="btn btn-light" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-4">
+                    <p>Nome</p>
+                </div>
+                <div class="col-5">
+                    <input type="text" id="inputName">
+                </div>
+                <div class="col-3 d-flex" style="justify-content: end;">
+                    <button id="randomName" class="btn btn-primary" title="Randomize"><i class="fa-solid fa-shuffle"></i></button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-4">
+                    <p>PF</p>
+                </div>
+                <div class="col-6">
+                    <input type="number" id="pf">
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="salvaCard">Salva</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <script>
+        var nome, pf, alignment;
+
+$(document).ready(function(){
+    $('#modalAdd').hide();
+
+    $('.btnAdd').on('click', function(){
+        if (this.id == "addEnemy"){
+            alignment = "enemy"
+        } else if (this.id == "addAlly"){
+            alignment = "ally"
+        } else {
+            alignment = "npc"
+        }
+        $('#modalAdd').show();
+    })
+
+    $('#randomName').on('click', function(){
+        var arrayName = [];
+        $.ajax({
+            type: "GET",
+            url: 'https://randommer.io/api/Name?nameType=fullname&quantity=1',
+            headers: {"X-Api-Key": "9e63af1a0c8f4659934478690939fc20"},
+            success: function(data){
+                arrayName = data
+                $('#inputName').val(arrayName[0])
+            },
+            error: function(error){
+                console.log(error)
+            }
+        });
+    })
+
+    $('#closeModal').on('click', function(){
+        $('#inputName').val("");
+        $('#pf').val("");
+        alignment = "";
+    })
+    
+    $('#salvaCard').on('click', function(){
+        creaCard();
+        $('#modalAdd').hide();
+        $('#inputName').val("");
+        $('#pf').val("");
+        alignment = "";
+    })
+
+    $(document).on('click', '.deleteCard', function(){
+        $(this).parent().parent().parent().remove();
+    })
+})
+
+function creaCard(){
+    nome = $('#inputName').val();
+    pf = $('#pf').val();
+    
+    var icon = "";
+    if (alignment == "enemy"){
+        icon = '<i class="fa-solid fa-ghost"></i>';
+    } else if (alignment == "ally"){
+        icon = '<i class="fa-solid fa-shield"></i>'
+    } else {
+        icon = '<i class="fa-solid fa-user"></i>'
+    }
+
+    var card = `
+        <div class="card squareCard ${alignment}">
+            <div class="card-header">
+                <div class="cardHeader">
+                    ${icon}
+                    <h6>${nome}</h6>
+                    <button type="button" class="btn btn-danger deleteCard"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div class="col-12 d-flex mt-2">
+                <input type="number" class="col-6 noBorder"></input>
+                <p class="col-6">/ ${pf} pf</p>
+            </div>
+        </div>
+    `
+
+    $('#cardsContainer').append(card);
+}
+    </script>
+
+    <style>
+        .squareCard{
+            text-align: center;
+            /* border: solid; */
+            /* border-color: grey; */
+            border-radius: 20px;
+            width: max-content;
+            margin: 20px;
+            box-shadow: 2px 2px 20px #00000059;
+        }
+        .noBorder{
+            -webkit-appearance: none;
+            margin: 0;
+            border: 0;
+            -moz-appearance: textfield;
+            border: 1px solid gray;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+        .enemy{
+            background-color: #ff8a8a;
+        }
+        .ally{
+            background-color: #a3e88f;
+        }
+        .npc{
+            background-color: #9ac1ff;
+        }
+        .cardHeader{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+    
+</body>
+</html>
